@@ -37,6 +37,31 @@ export default function DonationForm() {
       }
     };
     initSnap();
+
+    // Check if redirected back from Midtrans with transaction params
+    const checkRedirectStatus = async () => {
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const orderIdParam = params.get("order_id");
+
+        if (orderIdParam) {
+          try {
+            const res = await fetch(`/api/donasi?order_id=${orderIdParam}`);
+            if (res.ok) {
+              const data = await res.json();
+              setCreatedOrderId(data.id);
+              setAmount(data.amount);
+              setProgram(data.program);
+              setPaymentStatusText(data.status);
+              setIsSuccess(true);
+            }
+          } catch (err) {
+            console.error("Gagal memuat status redirect donasi:", err);
+          }
+        }
+      }
+    };
+    checkRedirectStatus();
   }, []);
   const [amount, setAmount] = useState<number>(100000);
   const [customAmount, setCustomAmount] = useState<string>("");
@@ -306,7 +331,7 @@ export default function DonationForm() {
                       <div className="flex justify-between">
                         <span className="text-gray-500">Alokasi Program:</span>
                         <span className="font-semibold text-gray-900 dark:text-white max-w-[200px] truncate text-right">
-                          {program === "all" ? "Donasi Umum" : program === "asah" ? "Silih Asah (Pendidikan)" : program === "asih" ? "Silih Asih (Sosial)" : "Silih Asuh (Kesehatan)"}
+                          {program === "all" ? "Donasi Umum" : program === "asah" ? "Silih Asah (Pendidikan)" : program === "asih" ? "Silih Asih (Sosial)" : program === "asuh" ? "Silih Asuh (Kesehatan)" : program}
                         </span>
                       </div>
                       <div className="border-t border-gray-150 dark:border-zinc-900 pt-3 flex justify-between items-center">

@@ -132,3 +132,42 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const orderId = searchParams.get("order_id");
+
+    if (!orderId) {
+      return NextResponse.json(
+        { error: "Order ID wajib disertakan." },
+        { status: 400 }
+      );
+    }
+
+    const rows = await dbQuery("SELECT id, name, amount, program, payment_method, status, date FROM donations WHERE id = ?", [orderId]);
+    
+    if (!rows || rows.length === 0) {
+      return NextResponse.json(
+        { error: "Transaksi tidak ditemukan." },
+        { status: 404 }
+      );
+    }
+
+    const d = rows[0];
+    return NextResponse.json({
+      id: d.id,
+      name: d.name,
+      amount: d.amount,
+      program: d.program,
+      paymentMethod: d.payment_method,
+      status: d.status,
+      date: d.date,
+    });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Gagal mengambil status transaksi." },
+      { status: 500 }
+    );
+  }
+}
