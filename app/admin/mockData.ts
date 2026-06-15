@@ -27,6 +27,8 @@ export interface ProgramStats {
   title: string;
   target: number;
   raised: number;
+  isActive?: number;
+  is_active?: number;
 }
 
 export const initialDonations: Donation[] = [
@@ -128,17 +130,20 @@ export const initialPrograms: ProgramStats[] = [
     title: "Beasiswa Pintar Silih Asah",
     target: 150000000,
     raised: 94500000,
+    isActive: 1,
   },
   {
     id: "asih",
     title: "Pangan Lansia Silih Asih",
     target: 80000000,
     raised: 68200000,
+    isActive: 1,
   },
   {
     id: "asuh",
     title: "Pos Sehat Ibu & Anak Silih Asuh",
     target: 100000000,
     raised: 45000000,
+    isActive: 1,
   },
 ];

@@ -38,6 +38,20 @@ export default function DonationForm() {
     };
     initSnap();
 
+    // Fetch active programs for donation select dropdown
+    const fetchPrograms = async () => {
+      try {
+        const res = await fetch("/api/programs");
+        if (res.ok) {
+          const data = await res.json();
+          setAvailablePrograms(data);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil program aktif:", err);
+      }
+    };
+    fetchPrograms();
+
     // Check if redirected back from Midtrans with transaction params
     const checkRedirectStatus = async () => {
       if (typeof window !== "undefined") {
@@ -80,6 +94,7 @@ export default function DonationForm() {
   const [paymentMethod] = useState("Midtrans");
   const [message, setMessage] = useState("");
   const [interestArea, setInterestArea] = useState("asah");
+  const [availablePrograms, setAvailablePrograms] = useState<any[]>([]);
 
   const amountPresets = [50000, 100000, 250000, 500000];
 
@@ -449,9 +464,9 @@ export default function DonationForm() {
                         className="block w-full py-3 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 focus:ring-2 focus:ring-brand-emerald-500 focus:border-brand-emerald-500 text-gray-900 dark:text-white font-medium"
                       >
                         <option value="all">Donasi Umum (Didistribusikan ke semua program)</option>
-                        <option value="asah">Beasiswa Pintar Silih Asah (Pendidikan)</option>
-                        <option value="asih">Pangan Lansia Silih Asih (Bantuan Sosial)</option>
-                        <option value="asuh">Pos Sehat Ibu & Anak Silih Asuh (Kesehatan)</option>
+                        {availablePrograms.map((p) => (
+                          <option key={p.id} value={p.id}>{p.title}</option>
+                        ))}
                       </select>
                     </div>
 

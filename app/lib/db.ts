@@ -86,6 +86,18 @@ async function initializeDatabase() {
             console.error(`[MySQL Migration Error] Statement failed:`, statement.substring(0, 80), "Error:", err.message);
           }
         }
+        
+        // Ensure the is_active column exists on the programs table in case it was created earlier
+        try {
+          await pool.query("ALTER TABLE programs ADD COLUMN is_active TINYINT NOT NULL DEFAULT 1");
+          console.log("[MySQL Migration] Column `is_active` verified/added to `programs` table.");
+        } catch (alterErr: any) {
+          // Ignore ER_DUP_FIELDNAME (1060) - column already exists
+          if (alterErr.errno !== 1060 && alterErr.code !== "ER_DUP_FIELDNAME") {
+            console.error("[MySQL Migration Alter Error]:", alterErr.message);
+          }
+        }
+
         console.log("[MySQL Migration] Auto-migration and seeding completed successfully.");
       }
       console.log("[MySQL] Connection pool initialized successfully.");
@@ -141,6 +153,9 @@ export async function dbQuery(sql: string, params: any[] = []): Promise<any> {
 
   // 3. SELECT programs
   if (sqlLower.startsWith("select") && sqlLower.includes("programs")) {
+    if (sqlLower.includes("is_active = 1") || sqlLower.includes("is_active = ?")) {
+      return mockPrograms.filter(p => p.isActive === 1 || p.isActive === undefined);
+    }
     return mockPrograms;
   }
 
@@ -209,7 +224,24 @@ export async function dbQuery(sql: string, params: any[] = []): Promise<any> {
     return { affectedRows: 1 };
   }
 
-  // 8. UPDATE programs target or raised
+  // 8. UPDATE programs target, raised, title, or is_active
+  if (sqlLower.startsWith("update programs") && sqlLower.includes("title =") && sqlLower.includes("target =")) {
+    // UPDATE programs SET title = ?, target = ? WHERE id = ?
+    const title = params[0];
+    const target = params[1];
+    const id = params[2];
+    mockPrograms = mockPrograms.map(p => (p.id === id ? { ...p, title, target } : p));
+    return { affectedRows: 1 };
+  }
+
+  if (sqlLower.startsWith("update programs") && sqlLower.includes("is_active =")) {
+    // UPDATE programs SET is_active = ? WHERE id = ?
+    const isActive = params[0];
+    const id = params[1];
+    mockPrograms = mockPrograms.map(p => (p.id === id ? { ...p, isActive } : p));
+    return { affectedRows: 1 };
+  }
+
   if (sqlLower.startsWith("update programs set target =") || sqlLower.includes("target = ?")) {
     // UPDATE programs SET target = ? WHERE id = ?
     const target = params[0];
@@ -223,6 +255,29 @@ export async function dbQuery(sql: string, params: any[] = []): Promise<any> {
     const amount = params[0];
     const id = params[1];
     mockPrograms = mockPrograms.map(p => (p.id === id ? { ...p, raised: p.raised + amount } : p));
+    return { affectedRows: 1 };
+  }
+
+  // 8b. INSERT INTO programs
+  if (sqlLower.startsWith("insert into programs")) {
+    // INSERT INTO programs (id, title, target, raised, is_active) VALUES (?, ?, ?, 0, 1)
+    const newProg: ProgramStats = {
+      id: params[0],
+      title: params[1],
+      target: params[2],
+      raised: 0,
+      isActive: 1,
+    };
+    if (!mockPrograms.some(p => p.id === newProg.id)) {
+      mockPrograms.push(newProg);
+    }
+    return { affectedRows: 1 };
+  }
+
+  // 8c. DELETE FROM programs
+  if (sqlLower.startsWith("delete from programs")) {
+    const id = params[0];
+    mockPrograms = mockPrograms.filter(p => p.id !== id);
     return { affectedRows: 1 };
   }
 

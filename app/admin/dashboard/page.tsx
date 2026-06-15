@@ -20,12 +20,51 @@ import {
   XCircle,
   Edit2,
   Lock,
+  Trash2,
 } from "lucide-react";
 import {
   Donation,
   Volunteer,
   ProgramStats,
 } from "../mockData";
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  footer: React.ReactNode;
+}
+
+function Modal({ isOpen, onClose, title, description, children, footer }: ModalProps) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in-up">
+      <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-100 dark:border-zinc-800 max-w-md w-full shadow-2xl space-y-6 relative animate-in fade-in zoom-in-95 duration-200">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-650 dark:hover:text-gray-200 text-sm font-bold w-6 h-6 flex items-center justify-center rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-850 transition-colors"
+          type="button"
+        >
+          ✕
+        </button>
+        <div>
+          <h4 className="font-bold text-lg text-gray-900 dark:text-white">{title}</h4>
+          {description && <p className="text-xs text-gray-400 mt-1">{description}</p>}
+        </div>
+
+        <div className="space-y-4">
+          {children}
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          {footer}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -43,7 +82,14 @@ export default function AdminDashboard() {
 
   // Edit Program Modal State
   const [editingProgram, setEditingProgram] = useState<ProgramStats | null>(null);
+  const [newTitleInput, setNewTitleInput] = useState("");
   const [newTargetInput, setNewTargetInput] = useState("");
+
+  // Create Program Modal State
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newProgId, setNewProgId] = useState("");
+  const [newProgTitle, setNewProgTitle] = useState("");
+  const [newProgTarget, setNewProgTarget] = useState("");
 
   // Settings credentials state
   const [midtransServerKey, setMidtransServerKey] = useState("SB-Mid-server-xxxxxxxxx");
@@ -107,14 +153,40 @@ export default function AdminDashboard() {
 
   const handleEditProgram = (prog: ProgramStats) => {
     setEditingProgram(prog);
+    setNewTitleInput(prog.title);
     setNewTargetInput(prog.target.toString());
   };
 
-  const handleSaveProgramTarget = async () => {
+  const handleSaveProgram = async () => {
     if (!editingProgram) return;
     const nextVal = parseInt(newTargetInput);
-    if (isNaN(nextVal) || nextVal <= 0) {
-      alert("Harap masukkan nominal target yang valid.");
+    if (!newTitleInput.trim() || isNaN(nextVal) || nextVal <= 0) {
+      alert("Harap lengkapi judul program dan nominal target yang valid.");
+      return;
+    }
+    
+    try {
+      const res = await fetch("/api/admin/program", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingProgram.id, title: newTitleInput, target: nextVal }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setEditingProgram(null);
+        fetchDashboardData();
+      } else {
+        alert(data.error || "Gagal memperbarui program.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateProgram = async () => {
+    const targetVal = parseInt(newProgTarget);
+    if (!newProgId.trim() || !newProgTitle.trim() || isNaN(targetVal) || targetVal <= 0) {
+      alert("Harap lengkapi ID, Judul, dan Target yang valid.");
       return;
     }
     
@@ -122,13 +194,36 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/program", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editingProgram.id, target: nextVal }),
+        body: JSON.stringify({ id: newProgId, title: newProgTitle, target: targetVal }),
       });
+      const data = await res.json();
       if (res.ok) {
-        setEditingProgram(null);
+        setIsCreateModalOpen(false);
+        setNewProgId("");
+        setNewProgTitle("");
+        setNewProgTarget("");
         fetchDashboardData();
       } else {
-        alert("Gagal memperbarui target program.");
+        alert(data.error || "Gagal membuat program.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteProgram = async (id: string) => {
+    if (!confirm("Apakah Anda yakin ingin menghapus program ini?")) return;
+    
+    try {
+      const res = await fetch(`/api/admin/program?id=${id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message || "Program berhasil dihapus.");
+        fetchDashboardData();
+      } else {
+        alert(data.error || "Gagal menghapus program.");
       }
     } catch (err) {
       console.error(err);
@@ -615,9 +710,7 @@ export default function AdminDashboard() {
               </div>
 
             </div>
-          )}
-
-          {/* TAB 4: PROGRAMS */}
+          )}          {/* TAB 4: PROGRAMS */}
           {activeTab === "programs" && (
             <div className="space-y-6 animate-fade-in-up">
               
@@ -625,8 +718,14 @@ export default function AdminDashboard() {
                 <div className="p-6 border-b border-gray-150 dark:border-zinc-850 flex justify-between items-center">
                   <div>
                     <h4 className="text-sm font-bold text-gray-800 dark:text-white">Daftar Program & Target Pendanaan</h4>
-                    <p className="text-xs text-gray-400">Atur besaran target dana penggalangan secara langsung.</p>
+                    <p className="text-xs text-gray-400">Atur program serta besaran target dana penggalangan secara langsung.</p>
                   </div>
+                  <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="bg-brand-emerald-700 hover:bg-brand-emerald-800 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-all duration-200 flex items-center gap-1.5"
+                  >
+                    + Tambah Program
+                  </button>
                 </div>
 
                 <div className="divide-y divide-gray-150 dark:divide-zinc-800/80">
@@ -639,7 +738,17 @@ export default function AdminDashboard() {
                     return (
                       <div key={p.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-zinc-50/50 dark:hover:bg-zinc-850/10 transition-colors">
                         <div className="min-w-0 flex-1 space-y-1">
-                          <h5 className="font-bold text-gray-900 dark:text-white text-sm">{p.title}</h5>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h5 className="font-bold text-gray-900 dark:text-white text-sm">{p.title}</h5>
+                            <span className="text-[10px] text-gray-400 font-mono">({p.id})</span>
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                              (p.is_active === 1 || p.isActive === 1 || (p.is_active === undefined && p.isActive === undefined))
+                                ? "bg-green-100 text-green-800 dark:bg-green-950/50 dark:text-green-450"
+                                : "bg-zinc-200 text-zinc-650 dark:bg-zinc-800 dark:text-zinc-400"
+                            }`}>
+                              {(p.is_active === 1 || p.isActive === 1 || (p.is_active === undefined && p.isActive === undefined)) ? "Aktif" : "Nonaktif"}
+                            </span>
+                          </div>
                           <p className="text-xs text-gray-400">
                             Terkumpul: <strong className="text-brand-emerald-700 dark:text-brand-emerald-450">{formatCurrency(p.raised)}</strong> dari target <strong className="text-gray-600 dark:text-gray-300">{formatCurrency(p.target)}</strong>
                           </p>
@@ -658,55 +767,138 @@ export default function AdminDashboard() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => handleEditProgram(p)}
-                          className="flex items-center gap-2 border border-gray-200 dark:border-zinc-800 hover:border-brand-emerald-500 hover:bg-brand-emerald-50/20 text-gray-700 dark:text-gray-300 font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-all duration-200 self-start sm:self-center"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                          Ubah Target
-                        </button>
+                        <div className="flex gap-2 self-start sm:self-center">
+                          <button
+                            onClick={() => handleEditProgram(p)}
+                            className="flex items-center gap-2 border border-gray-200 dark:border-zinc-800 hover:border-brand-emerald-500 hover:bg-brand-emerald-50/20 text-gray-700 dark:text-gray-300 font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-all duration-200"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                            Ubah
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProgram(p.id)}
+                            className="flex items-center gap-2 border border-red-200 dark:border-red-900/50 hover:border-red-500 hover:bg-red-50/20 text-red-700 dark:text-red-400 font-bold py-2 px-4 rounded-xl text-xs shadow-sm transition-all duration-200"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Hapus
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Edit Modal (Popup Overlay in dashboard) */}
-              {editingProgram && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in-up">
-                  <div className="bg-white dark:bg-zinc-900 p-8 rounded-3xl border border-zinc-100 dark:border-zinc-800 max-w-md w-full shadow-2xl space-y-6">
-                    <div>
-                      <h4 className="font-bold text-lg text-gray-900 dark:text-white">Ubah Target Pendanaan</h4>
-                      <p className="text-xs text-gray-400 mt-1">{editingProgram.title}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Target Baru (Rp)</label>
-                      <input
-                        type="number"
-                        value={newTargetInput}
-                        onChange={(e) => setNewTargetInput(e.target.value)}
-                        className="block w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white font-semibold text-sm"
-                      />
-                    </div>
-
-                    <div className="flex gap-3 pt-2">
-                      <button
-                        onClick={handleSaveProgramTarget}
-                        className="flex-1 bg-brand-emerald-700 hover:bg-brand-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-all duration-200"
-                      >
-                        Simpan Perubahan
-                      </button>
-                      <button
-                        onClick={() => setEditingProgram(null)}
-                        className="flex-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-gray-300 font-bold py-2.5 px-4 rounded-xl text-xs transition-all duration-200"
-                      >
-                        Batal
-                      </button>
-                    </div>
-                  </div>
+              {/* Edit Modal */}
+              <Modal
+                isOpen={!!editingProgram}
+                onClose={() => setEditingProgram(null)}
+                title="Ubah Program"
+                description={editingProgram ? `ID Program: ${editingProgram.id}` : undefined}
+                footer={
+                  <>
+                    <button
+                      onClick={handleSaveProgram}
+                      className="flex-1 bg-brand-emerald-700 hover:bg-brand-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-all duration-200"
+                    >
+                      Simpan Perubahan
+                    </button>
+                    <button
+                      onClick={() => setEditingProgram(null)}
+                      className="flex-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-gray-300 font-bold py-2.5 px-4 rounded-xl text-xs transition-all duration-200"
+                    >
+                      Batal
+                    </button>
+                  </>
+                }
+              >
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Judul Program</label>
+                  <input
+                    type="text"
+                    value={newTitleInput}
+                    onChange={(e) => setNewTitleInput(e.target.value)}
+                    className="block w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white font-semibold text-sm focus:ring-1 focus:ring-brand-emerald-500 focus:border-brand-emerald-500"
+                  />
                 </div>
-              )}
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Target Baru (Rp)</label>
+                  <input
+                    type="number"
+                    value={newTargetInput}
+                    onChange={(e) => setNewTargetInput(e.target.value)}
+                    className="block w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white font-semibold text-sm focus:ring-1 focus:ring-brand-emerald-500 focus:border-brand-emerald-500"
+                  />
+                </div>
+              </Modal>
+
+              {/* Create Modal */}
+              <Modal
+                isOpen={isCreateModalOpen}
+                onClose={() => {
+                  setIsCreateModalOpen(false);
+                  setNewProgId("");
+                  setNewProgTitle("");
+                  setNewProgTarget("");
+                }}
+                title="Tambah Program Baru"
+                description="Buat program penggalangan dana sosial baru."
+                footer={
+                  <>
+                    <button
+                      onClick={handleCreateProgram}
+                      className="flex-1 bg-brand-emerald-700 hover:bg-brand-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm transition-all duration-200"
+                    >
+                      Buat Program
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsCreateModalOpen(false);
+                        setNewProgId("");
+                        setNewProgTitle("");
+                        setNewProgTarget("");
+                      }}
+                      className="flex-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-gray-700 dark:text-gray-300 font-bold py-2.5 px-4 rounded-xl text-xs transition-all duration-200"
+                    >
+                      Batal
+                    </button>
+                  </>
+                }
+              >
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">ID Program (Slug)</label>
+                  <input
+                    type="text"
+                    placeholder="misal: bantuan-sembako"
+                    value={newProgId}
+                    onChange={(e) => setNewProgId(e.target.value)}
+                    className="block w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white font-semibold text-sm focus:ring-1 focus:ring-brand-emerald-500 focus:border-brand-emerald-500"
+                  />
+                  <p className="text-[10px] text-gray-400 leading-normal">
+                    Gunakan huruf kecil, angka, dan tanda strip saja. ID tidak bisa diubah setelah dibuat.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Judul Program</label>
+                  <input
+                    type="text"
+                    placeholder="misal: Bantuan Pangan Lansia Dhuafa"
+                    value={newProgTitle}
+                    onChange={(e) => setNewProgTitle(e.target.value)}
+                    className="block w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white font-semibold text-sm focus:ring-1 focus:ring-brand-emerald-500 focus:border-brand-emerald-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Target Pendanaan (Rp)</label>
+                  <input
+                    type="number"
+                    placeholder="misal: 50000000"
+                    value={newProgTarget}
+                    onChange={(e) => setNewProgTarget(e.target.value)}
+                    className="block w-full py-2.5 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white font-semibold text-sm focus:ring-1 focus:ring-brand-emerald-500 focus:border-brand-emerald-500"
+                  />
+                </div>
+              </Modal>
 
             </div>
           )}
