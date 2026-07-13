@@ -67,6 +67,9 @@ export async function POST(req: Request) {
       : "https://app.sandbox.midtrans.com/snap/v1/transactions";
     const authString = Buffer.from(`${serverKey}:`).toString("base64");
 
+    const requestUrl = new URL(req.url);
+    const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
+
     const payload = {
       transaction_details: {
         order_id: orderId,
@@ -88,13 +91,18 @@ export async function POST(req: Request) {
       credit_card: {
         secure: true,
       },
+      callbacks: {
+        finish: `${baseUrl}/donasi`,
+        error: `${baseUrl}/donasi`,
+        pending: `${baseUrl}/donasi`,
+      }
     };
 
     // If Server Key is mock key, fallback to mock response for sandbox development
     if (serverKey === "SB-Mid-server-xxxxxxxxx") {
       return NextResponse.json({
         token: `mock-snap-token-${Date.now()}`,
-        redirect_url: "https://sandbox.midtrans.com",
+        redirect_url: `${baseUrl}/donasi?order_id=${orderId}`,
         orderId: orderId,
         isMock: true,
       });
