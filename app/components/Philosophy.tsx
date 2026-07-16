@@ -6,11 +6,11 @@ export default function Philosophy() {
       title: "Silih Asah",
       slogan: "Saling Mengasah Pikiran & Potensi",
       description:
-        "Program pendidikan, beasiswa anak yatim/piatu, serta pelatihan keterampilan terapan bagi masyarakat agar mandiri secara intelektual dan memiliki daya saing tinggi.",
+        "Berfokus pada berbagi kepada anak yatim melalui bantuan pendidikan, perlengkapan belajar, dan pendampingan karakter agar mereka tumbuh cerdas dan berdikari.",
       details: [
-        "Beasiswa Pendidikan Anak",
-        "Pelatihan Keterampilan Kerja",
-        "Taman Baca & Literasi Digital",
+        "Berbagi kepada Anak Yatim",
+        "Bantuan Biaya Sekolah",
+        "Pendampingan Karakter",
       ],
       icon: BookOpen,
       colorClass: "bg-brand-emerald-50 text-brand-emerald-700 dark:bg-brand-emerald-950/40 dark:text-brand-emerald-400",
@@ -21,11 +21,11 @@ export default function Philosophy() {
       title: "Silih Asih",
       slogan: "Saling Mengasihi & Membantu Sesama",
       description:
-        "Layanan sosial kemanusiaan, pembagian paket pangan berkala, bantuan darurat kebencanaan, dan santunan kasih sayang untuk kelompok rentan serta lansia.",
+        "Mewujudkan kepedulian melalui donasi untuk lansia yang hidup dalam keterbatasan, menyalurkan paket pangan bergizi, bantuan sosial, dan santunan kasih sayang.",
       details: [
-        "Pembagian Pangan Rutin",
-        "Santunan Lansia & Yatim",
-        "Tanggap Bencana & Darurat",
+        "Donasi untuk Lansia",
+        "Paket Pangan Bergizi Bulanan",
+        "Santunan & Bantuan Darurat",
       ],
       icon: Heart,
       colorClass: "bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400",
@@ -36,11 +36,11 @@ export default function Philosophy() {
       title: "Silih Asuh",
       slogan: "Saling Mengasuh & Membimbing",
       description:
-        "Bimbingan moral anak, pemantauan kesehatan dasar balita dan ibu hamil (Posyandu), pendampingan psikologis, serta pemberdayaan usaha ekonomi mikro.",
+        "Menjangkau masyarakat yang membutuhkan melalui layanan kesehatan keliling, imunisasi gratis, distribusi suplemen gizi, serta bantuan bagi keluarga prasejahtera.",
       details: [
-        "Bimbingan Karakter Anak",
-        "Layanan Kesehatan Gratis",
-        "Pendampingan Ekonomi Keluarga",
+        "Berbagi kepada Masyarakat",
+        "Layanan Kesehatan Keliling",
+        "Bantuan Sembako Keluarga",
       ],
       icon: Users,
       colorClass: "bg-brand-amber-50 text-brand-amber-700 dark:bg-brand-amber-950/30 dark:text-brand-amber-400",

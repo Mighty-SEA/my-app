@@ -300,7 +300,7 @@ export default function AdminDashboard() {
                 SA3 Admin
               </span>
               <span className="text-[10px] text-gray-400 font-bold uppercase block leading-none">
-                Yayasan Sosial
+                Yayasan SA 3
               </span>
             </div>
           </Link>

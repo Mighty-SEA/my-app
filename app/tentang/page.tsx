@@ -6,19 +6,14 @@ import { Award, Compass, Heart, Users, Target } from "lucide-react";
 export default function TentangPage() {
   const team = [
     {
-      name: "Drs. H. Dadang Hermawan, M.Si.",
+      name: "Pendi Barnas S.Ag",
       role: "Ketua Dewan Pembina",
-      description: "Lebih dari 15 tahun mengabdi di bidang pemberdayaan masyarakat Jawa Barat.",
+      description: "Memimpin pembinaan yayasan dengan penuh dedikasi dan amanah demi terwujudnya masyarakat yang sejahtera.",
     },
     {
-      name: "Siti Rahmawati, S.Sos.",
+      name: "Eep Kurnia",
       role: "Ketua Umum Yayasan",
-      description: "Fokus pada penguatan kurikulum pendidikan alternatif anak prasejahtera.",
-    },
-    {
-      name: "dr. Ahmad Gunawan",
-      role: "Direktur Program Medis (Silih Asuh)",
-      description: "Mendedikasikan karir medisnya untuk menuntaskan stunting dan kesehatan ibu hamil.",
+      description: "Menggerakkan seluruh program kemanusiaan yayasan dengan semangat kepedulian sosial yang tinggi.",
     },
   ];
 
@@ -51,9 +46,10 @@ export default function TentangPage() {
               {/* Left Column: Image */}
               <div className="lg:col-span-5 relative w-full h-[350px] sm:h-[450px] rounded-3xl overflow-hidden shadow-xl border border-gray-150 dark:border-zinc-800">
                 <Image
-                  src="/images/hero_community.png"
-                  alt="Masyarakat Yayasan"
+                  src="/images/WhatsApp Image 2026-07-14 at 16.29.03.png"
+                  alt="Masyarakat Yayasan Silih Asah Silih Asih Silih Asuh"
                   fill
+                  sizes="(max-width: 1024px) 100vw, 42vw"
                   className="object-cover"
                 />
               </div>
@@ -74,15 +70,15 @@ export default function TentangPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-gray-100 dark:border-zinc-900">
                   <div className="flex flex-col gap-1.5">
                     <span className="font-bold text-brand-emerald-700 dark:text-brand-emerald-400">Silih Asah</span>
-                    <span className="text-xs text-gray-500">Mencerdaskan kehidupan melalui pendidikan berkualitas dan pelatihan keahlian.</span>
+                    <span className="text-xs text-gray-500">Berbagi kepada anak yatim melalui bantuan pendidikan, biaya sekolah, dan pendampingan karakter.</span>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <span className="font-bold text-red-650 dark:text-red-400">Silih Asih</span>
-                    <span className="text-xs text-gray-500">Menumbuhkan rasa cinta kasih lewat santunan dan pemenuhan pangan sandang pangan.</span>
+                    <span className="text-xs text-gray-500">Donasi untuk lansia dan masyarakat rentan melalui penyaluran pangan bergizi dan bantuan sosial.</span>
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <span className="font-bold text-brand-amber-600 dark:text-brand-amber-500">Silih Asuh</span>
-                    <span className="text-xs text-gray-500">Menjaga dan membimbing moral serta kesehatan berkelanjutan.</span>
+                    <span className="text-xs text-gray-500">Berbagi kepada masyarakat yang membutuhkan melalui layanan kesehatan dan bantuan sembako.</span>
                   </div>
                 </div>
 
@@ -117,15 +113,15 @@ export default function TentangPage() {
                 <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-450">
                   <li className="flex items-start gap-2">
                     <span className="h-2 w-2 rounded-full bg-brand-emerald-600 shrink-0 mt-1.5" />
-                    <span>Menyelenggarakan program beasiswa sekolah dan pemberdayaan literasi untuk anak kurang mampu.</span>
+                    <span>Berbagi kepada anak yatim melalui bantuan biaya sekolah, perlengkapan belajar, dan pendampingan karakter.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="h-2 w-2 rounded-full bg-brand-emerald-600 shrink-0 mt-1.5" />
-                    <span>Menyalurkan bantuan pangan bergizi berkala dan dukungan darurat untuk warga terpinggirkan.</span>
+                    <span>Menyalurkan donasi untuk lansia berupa paket pangan bergizi dan dukungan sosial bagi warga yang membutuhkan.</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="h-2 w-2 rounded-full bg-brand-emerald-600 shrink-0 mt-1.5" />
-                    <span>Membangun pos kesehatan keliling dan memberikan bimbingan moral untuk anak masa depan bangsa.</span>
+                    <span>Berbagi kepada masyarakat yang membutuhkan melalui layanan kesehatan keliling dan bantuan sembako keluarga prasejahtera.</span>
                   </li>
                 </ul>
               </div>

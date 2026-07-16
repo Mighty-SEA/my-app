@@ -26,7 +26,7 @@ export default function Hero() {
               </span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-300 max-w-xl leading-relaxed">
-              Selamat datang di **Yayasan Silih Asah Silih Asih Silih Asuh**. Berlandaskan nilai kekeluargaan, kepedulian sosial, dan dedikasi kemanusiaan, kami berkomitmen mendampingi masyarakat prasejahtera untuk tumbuh berdikari melalui pendidikan, bantuan sosial, dan pengasuhan moral.
+              Selamat datang di <strong>Yayasan Silih Asah Silih Asih Silih Asuh</strong>. Kami hadir untuk berbagi kepada anak yatim, memberikan donasi untuk lansia, dan berbagi kepada masyarakat yang membutuhkan — karena kebaikan kecil hari ini adalah harapan besar bagi sesama.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mt-2">
@@ -76,26 +76,15 @@ export default function Hero() {
           </div>
 
           {/* Right Column: Hero Image Card */}
-          <div className="lg:col-span-5 relative w-full h-[350px] sm:h-[450px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 dark:border-zinc-800/30 group">
+          <div className="lg:col-span-5 relative w-full h-[350px] sm:h-[450px] lg:h-[500px] rounded-3xl overflow-hidden shadow-2xl border border-white/20 dark:border-zinc-800/30 group flex items-center justify-center bg-zinc-950">
             <Image
-              src="/images/hero_community.png"
-              alt="Yayasan Silih Asah Silih Asih Silih Asuh Community"
+              src="/images/logo_sa3.jpg"
+              alt="Logo Yayasan Silih Asah Silih Asih Silih Asuh"
               fill
+              sizes="(max-width: 1024px) 100vw, 42vw"
               priority
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
             />
-            {/* Soft overlay gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
-            
-            {/* Card Info Overlay */}
-            <div className="absolute bottom-6 left-6 right-6 p-6 rounded-2xl bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md border border-white/20 shadow-xl">
-              <p className="text-xs font-bold text-brand-amber-600 dark:text-brand-amber-500 uppercase tracking-wide">
-                Aksi Nyata
-              </p>
-              <p className="text-base font-bold text-gray-900 dark:text-white mt-1">
-                "Kemanusiaan sejati adalah saat kita bisa mengasah pikiran, mengasihi sesama, dan mengasuh masa depan bersama."
-              </p>
-            </div>
           </div>
         </div>
       </div>

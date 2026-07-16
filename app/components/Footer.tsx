@@ -19,10 +19,10 @@ export default function Footer() {
               </div>
               <div>
                 <span className="font-bold text-lg text-white tracking-tight block leading-tight">
-                  Silih Asah Asih Asuh
+                  Silih Asah Silih Asih Silih Asuh
                 </span>
                 <span className="text-xs text-brand-amber-500 font-semibold uppercase tracking-wider block">
-                  Yayasan Sosial Kemasyarakatan
+                  SA 3
                 </span>
               </div>
             </Link>
@@ -103,16 +103,16 @@ export default function Footer() {
               <li className="flex items-start gap-2.5">
                 <MapPin className="h-5 w-5 text-brand-emerald-500 shrink-0 mt-0.5" />
                 <span className="text-gray-500">
-                  Jl. Silih Asih Raya No. 45, Coblong, Kota Bandung, Jawa Barat 40135
+                  Kp Kadu Nenggang Desa Pasir Huni Kecamatan Cimaung
                 </span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="h-4.5 w-4.5 text-brand-emerald-500" />
-                <span>+62 812-3456-7890</span>
+                <span>+62 821 2161 3359</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="h-4.5 w-4.5 text-brand-emerald-500" />
-                <span>info@silihasahbihasuh.org</span>
+                <span>silihasahsilihasihsilihasuh@gmail.com</span>
               </li>
             </ul>
 

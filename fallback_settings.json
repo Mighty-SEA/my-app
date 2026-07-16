@@ -1,0 +1,14 @@
+[
+  {
+    "key_name": "midtrans_server_key",
+    "value_text": "SB-Mid-server-xxxxxxxxx"
+  },
+  {
+    "key_name": "midtrans_client_key",
+    "value_text": "SB-Mid-client-yyyyyyyyy"
+  },
+  {
+    "key_name": "midtrans_environment",
+    "value_text": "sandbox"
+  }
+]

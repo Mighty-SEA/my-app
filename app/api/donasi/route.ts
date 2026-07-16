@@ -54,12 +54,21 @@ export async function POST(req: Request) {
         email,
         phone,
         amount,
-        program === "all" ? "Donasi Umum" : program === "asah" ? "Beasiswa Pintar Silih Asah" : program === "asih" ? "Pangan Lansia Silih Asih" : "Pos Sehat Ibu & Anak Silih Asuh",
-        paymentMethod || "QRIS",
+        program === "all" ? "Donasi Umum" : program === "asah" ? "Berbagi kepada Anak Yatim" : program === "asih" ? "Donasi untuk Lansia" : "Berbagi kepada Masyarakat yang Membutuhkan",
+        paymentMethod || "Midtrans",
         "PENDING",
         message || "",
       ]
     );
+
+    // If manual transfer, return early without requesting snap token
+    if (paymentMethod && (paymentMethod.startsWith("Transfer") || paymentMethod.includes("Manual"))) {
+      return NextResponse.json({
+        orderId: orderId,
+        isManual: true,
+        status: "PENDING",
+      });
+    }
 
     // 2. Call Midtrans Snap API to get Snap Token
     const url = isProd

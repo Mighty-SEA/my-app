@@ -74,10 +74,10 @@ export default function Navbar() {
             </div>
             <div>
               <span className="font-bold text-xl tracking-tight text-brand-emerald-950 dark:text-brand-emerald-100 block leading-tight">
-                Silih Asah Asih Asuh
+                Silih Asah Silih Asih Silih Asuh
               </span>
               <span className="text-xs text-brand-amber-600 dark:text-brand-amber-500 font-semibold uppercase tracking-wider block">
-                Yayasan Sosial
+                SA 3
               </span>
             </div>
           </Link>

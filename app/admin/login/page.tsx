@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
               <Heart className="h-5 w-5 fill-current" />
             </div>
             <span className="font-extrabold text-sm tracking-widest text-brand-emerald-950 dark:text-brand-emerald-100 uppercase">
-              Silih Asah Asih Asuh
+              Silih Asah Silih Asih Silih Asuh
             </span>
           </Link>
           <h1 className="text-2xl font-black text-gray-900 dark:text-white">Admin Panel</h1>

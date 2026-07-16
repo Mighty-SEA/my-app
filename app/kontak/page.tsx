@@ -73,7 +73,7 @@ export default function KontakPage() {
                       <div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Kantor Pusat</p>
                         <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">
-                          Jl. Silih Asih Raya No. 45, Coblong, Kota Bandung, Jawa Barat 40135
+                          Kp Kadu Nenggang Desa Pasir Huni Kecamatan Cimaung
                         </p>
                       </div>
                     </li>
@@ -84,7 +84,7 @@ export default function KontakPage() {
                       <div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Telepon / WhatsApp</p>
                         <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">
-                          +62 812-3456-7890
+                          +62 821 2161 3359
                         </p>
                       </div>
                     </li>
@@ -95,7 +95,7 @@ export default function KontakPage() {
                       <div>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">Email Layanan</p>
                         <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">
-                          info@silihasahbihasuh.org
+                          silihasahsilihasihsilihasuh@gmail.com
                         </p>
                       </div>
                     </li>
@@ -118,7 +118,7 @@ export default function KontakPage() {
                   <div className="absolute inset-0 bg-gradient-to-tr from-brand-emerald-950/5 via-transparent to-transparent pointer-events-none" />
                   <div className="text-center p-6 space-y-2 relative z-10">
                     <MapPin className="h-10 w-10 text-brand-emerald-600 dark:text-brand-emerald-500 mx-auto animate-bounce" />
-                    <p className="text-sm font-bold text-gray-800 dark:text-white">Yayasan Silih Asah Asih Asuh</p>
+                    <p className="text-sm font-bold text-gray-800 dark:text-white">Yayasan Silih Asah Silih Asih Silih Asuh</p>
                     <p className="text-xs text-gray-400">Peta Mockup Lokasi Bandung</p>
                   </div>
                 </div>

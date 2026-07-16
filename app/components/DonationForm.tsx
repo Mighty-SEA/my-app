@@ -91,10 +91,13 @@ export default function DonationForm() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [program, setProgram] = useState("all");
-  const [paymentMethod] = useState("Midtrans");
+  const [paymentMethod, setPaymentMethod] = useState("QRIS (Midtrans)");
   const [message, setMessage] = useState("");
   const [interestArea, setInterestArea] = useState("asah");
   const [availablePrograms, setAvailablePrograms] = useState<any[]>([]);
+  const [showMockModal, setShowMockModal] = useState(false);
+  const [isMockPaying, setIsMockPaying] = useState(false);
+  const [mockPaymentType, setMockPaymentType] = useState<"qris" | "bank_transfer">("qris");
 
   const amountPresets = [50000, 100000, 250000, 500000];
 
@@ -162,6 +165,19 @@ export default function DonationForm() {
 
       setCreatedOrderId(data.orderId);
       setSnapToken(data.token);
+
+      if (data.isManual) {
+        setPaymentStatusText("PENDING");
+        setIsSubmitting(false);
+        setIsSuccess(true);
+        return;
+      }
+
+      if (data.isMock) {
+        setShowMockModal(true);
+        setIsSubmitting(false);
+        return;
+      }
 
       // Trigger Snap Modal using eagerly loaded window.snap
       const snap = (window as any).snap;
@@ -233,6 +249,33 @@ export default function DonationForm() {
     } catch (err: any) {
       setError(err.message || "Terjadi kesalahan koneksi server.");
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    setIsMockPaying(true);
+    try {
+      await fetch("/api/webhook", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          transaction_status: "settlement",
+          order_id: createdOrderId,
+          payment_type: mockPaymentType === "qris" ? "gopay" : "bank_transfer",
+          gross_amount: selectedAmount,
+          status_code: "200",
+        }),
+      });
+
+      setPaymentStatusText("SUCCESS");
+      setIsMockPaying(false);
+      setShowMockModal(false);
+      setIsSuccess(true);
+    } catch (err) {
+      console.error("Gagal melakukan simulasi pembayaran:", err);
+      setIsMockPaying(false);
+      setShowMockModal(false);
+      setIsSuccess(true);
     }
   };
 
@@ -320,8 +363,10 @@ export default function DonationForm() {
                   <p className="text-gray-600 dark:text-gray-400 mt-2 max-w-md mx-auto text-sm leading-relaxed">
                     {formType === "donate"
                       ? (paymentStatusText.includes("SUCCESS")
-                          ? `Terima kasih! Donasi Anda sebesar ${formatCurrency(selectedAmount)} telah berhasil kami terima via Midtrans.`
-                          : `Donasi Anda sebesar ${formatCurrency(selectedAmount)} telah terdaftar. Silakan selesaikan pembayaran Anda di portal Midtrans.`)
+                          ? `Terima kasih! Donasi Anda sebesar ${formatCurrency(selectedAmount)} telah berhasil kami terima.`
+                          : paymentMethod.startsWith("Transfer Manual")
+                            ? `Donasi Anda sebesar ${formatCurrency(selectedAmount)} telah terdaftar. Silakan ikuti petunjuk transfer di bawah ini.`
+                            : `Donasi Anda sebesar ${formatCurrency(selectedAmount)} telah terdaftar. Silakan selesaikan pembayaran Anda di portal Midtrans.`)
                       : `Pendaftaran Anda sebagai relawan bidang ${
                           interestArea === "asah" ? "Silih Asah (Pendidikan)" : interestArea === "asih" ? "Silih Asih (Bantuan Sosial)" : "Silih Asuh (Kesehatan)"
                         } telah diterima. Kami akan segera menghubungi Anda.`}
@@ -329,9 +374,9 @@ export default function DonationForm() {
                 </div>
 
                 {formType === "donate" && (
-                  /* Midtrans Order Box */
+                  /* Transaction Detail Box */
                   <div className="w-full max-w-md bg-white dark:bg-zinc-950 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 text-left mt-4 shadow-sm space-y-4">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-zinc-900 pb-2">Detail Transaksi Midtrans</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-zinc-900 pb-2">Detail Transaksi</p>
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-500">ID Transaksi:</span>
@@ -344,9 +389,13 @@ export default function DonationForm() {
                         }`}>{paymentStatusText}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-gray-500">Metode Pembayaran:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">{paymentMethod === "Midtrans" ? "Midtrans Gateway" : paymentMethod}</span>
+                      </div>
+                      <div className="flex justify-between">
                         <span className="text-gray-500">Alokasi Program:</span>
                         <span className="font-semibold text-gray-900 dark:text-white max-w-[200px] truncate text-right">
-                          {program === "all" ? "Donasi Umum" : program === "asah" ? "Silih Asah (Pendidikan)" : program === "asih" ? "Silih Asih (Sosial)" : program === "asuh" ? "Silih Asuh (Kesehatan)" : program}
+                          {program === "all" ? "Donasi Umum" : program === "asah" ? "Berbagi kepada Anak Yatim" : program === "asih" ? "Donasi untuk Lansia" : program === "asuh" ? "Berbagi kepada Masyarakat" : program}
                         </span>
                       </div>
                       <div className="border-t border-gray-150 dark:border-zinc-900 pt-3 flex justify-between items-center">
@@ -355,7 +404,41 @@ export default function DonationForm() {
                       </div>
                     </div>
 
-                    {!paymentStatusText.includes("SUCCESS") && snapToken && (
+                    {/* Manual Bank Account details if manual transfer selected */}
+                    {paymentMethod.startsWith("Transfer Manual") && (
+                      <div className="mt-4 p-4 bg-brand-emerald-50/50 dark:bg-brand-emerald-950/20 border border-brand-emerald-100 dark:border-brand-emerald-900/30 rounded-xl space-y-3">
+                        <p className="text-xs font-bold text-brand-emerald-800 dark:text-brand-emerald-400 uppercase tracking-wider">Petunjuk Transfer</p>
+                        <div className="text-xs text-gray-650 dark:text-gray-400 space-y-2">
+                          <p>Silakan lakukan transfer sebesar <strong className="text-gray-950 dark:text-white">{formatCurrency(selectedAmount)}</strong> ke rekening berikut:</p>
+                          <div className="p-3 bg-white dark:bg-zinc-900 rounded-lg border border-gray-200 dark:border-zinc-850 font-semibold space-y-1 text-gray-950 dark:text-white">
+                            {paymentMethod.includes("BCA") ? (
+                              <>
+                                <p>Bank: <span className="text-brand-emerald-700 dark:text-brand-emerald-400">BCA</span></p>
+                                <p>No. Rekening: <span className="font-mono text-base tracking-wider text-brand-amber-600">0353123456</span></p>
+                                <p className="text-[10px] font-normal text-gray-400">a/n Yayasan Silih Asah Silih Asih Silih Asuh</p>
+                              </>
+                            ) : (
+                              <>
+                                <p>Bank: <span className="text-brand-emerald-700 dark:text-brand-emerald-400">Mandiri</span></p>
+                                <p>No. Rekening: <span className="font-mono text-base tracking-wider text-brand-amber-600">1310012345678</span></p>
+                                <p className="text-[10px] font-normal text-gray-400">a/n Yayasan Silih Asah Silih Asih Silih Asuh</p>
+                              </>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-500">Setelah transfer, mohon konfirmasi bukti transfer dengan menekan tombol WhatsApp di bawah ini.</p>
+                        </div>
+                        <a
+                          href={`https://wa.me/6282121613359?text=Halo%20Yayasan%20SA3%2C%20saya%20ingin%20mengonfirmasi%20donasi%20manual%20saya.%0A%0AID%20Donasi%3A%20${createdOrderId}%0ANama%3A%20${name}%0ANominal%3A%20${formatCurrency(selectedAmount)}%0AMetode%3A%20${paymentMethod}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-sm hover:shadow transition-all duration-200"
+                        >
+                          Konfirmasi via WhatsApp
+                        </a>
+                      </div>
+                    )}
+
+                    {!paymentStatusText.includes("SUCCESS") && snapToken && !paymentMethod.startsWith("Transfer Manual") && (
                       <button
                         type="button"
                         onClick={async () => {
@@ -467,6 +550,22 @@ export default function DonationForm() {
                         {availablePrograms.map((p) => (
                           <option key={p.id} value={p.id}>{p.title}</option>
                         ))}
+                      </select>
+                    </div>
+
+                    {/* Payment Method Selector */}
+                    <div>
+                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                        Pilih Metode Pembayaran
+                      </label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="block w-full py-3 px-4 rounded-xl border border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 focus:ring-2 focus:ring-brand-emerald-500 focus:border-brand-emerald-500 text-gray-900 dark:text-white font-medium"
+                      >
+                        <option value="QRIS (Midtrans)">QRIS / E-Wallet (Otomatis via Midtrans)</option>
+                        <option value="Transfer Bank BCA">Transfer Bank BCA (Konfirmasi Manual)</option>
+                        <option value="Transfer Bank Mandiri">Transfer Bank Mandiri (Konfirmasi Manual)</option>
                       </select>
                     </div>
 
@@ -598,6 +697,115 @@ export default function DonationForm() {
           </div>
         </div>
       </div>
+
+      {/* Mock Midtrans Snap Simulation Modal */}
+      {showMockModal && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-zinc-900 w-full max-w-md rounded-3xl border border-zinc-100 dark:border-zinc-800 shadow-2xl overflow-hidden animate-scale-in">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-brand-emerald-700 to-brand-emerald-600 dark:from-brand-emerald-800 dark:to-brand-emerald-700 p-6 text-white text-center">
+              <h4 className="font-extrabold text-lg">Simulasi Midtrans Sandbox</h4>
+              <p className="text-xs text-brand-emerald-200 mt-1">Pembayaran Instan & Otomatis Terintegrasi Web</p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6 text-gray-900 dark:text-gray-150">
+              <div className="bg-zinc-50 dark:bg-zinc-950 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-900 space-y-3">
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>ID Transaksi:</span>
+                  <span className="font-mono font-bold">{createdOrderId}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Donatur:</span>
+                  <span className="font-semibold text-gray-800 dark:text-white">{name}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>Alokasi Program:</span>
+                  <span className="font-semibold text-gray-800 dark:text-white">
+                    {program === "all" ? "Donasi Umum" : program === "asah" ? "Berbagi kepada Anak Yatim" : program === "asih" ? "Donasi untuk Lansia" : "Berbagi kepada Masyarakat yang Membutuhkan"}
+                  </span>
+                </div>
+                <div className="border-t border-zinc-200/60 dark:border-zinc-900 pt-3 flex justify-between items-center">
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">Total Tagihan:</span>
+                  <span className="text-xl font-extrabold text-brand-amber-600 dark:text-brand-amber-500">{formatCurrency(selectedAmount)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Pilih Metode Pembayaran Simulasi</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setMockPaymentType("qris")}
+                    className={`p-3.5 rounded-xl border font-bold text-xs flex flex-col items-center gap-2 transition-all ${
+                      mockPaymentType === "qris"
+                        ? "bg-brand-emerald-50/50 border-brand-emerald-500 text-brand-emerald-700 dark:bg-brand-emerald-950/20 dark:border-brand-emerald-450 dark:text-brand-emerald-400"
+                        : "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800"
+                    }`}
+                  >
+                    <svg className="h-6 w-6 text-brand-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <rect x="7" y="7" width="3" height="3" />
+                      <rect x="14" y="7" width="3" height="3" />
+                      <rect x="7" y="14" width="3" height="3" />
+                      <rect x="14" y="14" width="3" height="3" />
+                    </svg>
+                    <span>Instant QRIS / GoPay</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMockPaymentType("bank_transfer")}
+                    className={`p-3.5 rounded-xl border font-bold text-xs flex flex-col items-center gap-2 transition-all ${
+                      mockPaymentType === "bank_transfer"
+                        ? "bg-brand-emerald-50/50 border-brand-emerald-500 text-brand-emerald-700 dark:bg-brand-emerald-950/20 dark:border-brand-emerald-450 dark:text-brand-emerald-400"
+                        : "bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800"
+                    }`}
+                  >
+                    <CreditCard className="h-6 w-6 text-brand-emerald-600" />
+                    <span>Virtual Account Bank</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="bg-zinc-50 dark:bg-zinc-900/60 p-6 border-t border-zinc-100 dark:border-zinc-800/80 flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={handleSimulatePayment}
+                disabled={isMockPaying}
+                className="w-full flex items-center justify-center gap-2 bg-brand-emerald-700 hover:bg-brand-emerald-800 text-white font-bold py-3 px-4 rounded-xl text-sm shadow-md transition-all duration-200 disabled:bg-gray-400"
+              >
+                {isMockPaying ? (
+                  <span className="flex items-center gap-1.5">
+                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Memverifikasi Pembayaran...
+                  </span>
+                ) : (
+                  <>
+                    <span>Bayar Sekarang (Otomatis)</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMockModal(false);
+                  setPaymentStatusText("PENDING");
+                  setIsSuccess(true);
+                }}
+                className="w-full text-center text-xs font-bold text-gray-500 hover:text-gray-700 dark:text-gray-450 dark:hover:text-gray-300 py-1"
+              >
+                Batal / Bayar Nanti
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
