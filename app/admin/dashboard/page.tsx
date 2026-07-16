@@ -21,7 +21,9 @@ import {
   Edit2,
   Lock,
   Trash2,
+  FileSpreadsheet,
 } from "lucide-react";
+import * as XLSX from "xlsx";
 import {
   Donation,
   Volunteer,
@@ -284,6 +286,46 @@ export default function AdminDashboard() {
       return d.name.toLowerCase().includes(searchQuery.toLowerCase()) || d.id.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
+  const handleExportExcel = () => {
+    if (filteredDonations.length === 0) {
+      alert("Tidak ada data transaksi untuk diekspor.");
+      return;
+    }
+
+    const dataToExport = filteredDonations.map((d) => ({
+      "ID Transaksi": d.id,
+      "Tanggal": d.date,
+      "Nama Donatur": d.name,
+      "Email": d.email,
+      "No. Telepon": d.phone,
+      "Nominal (Rp)": d.amount,
+      "Program Pilihan": d.program,
+      "Metode Pembayaran": d.paymentMethod,
+      "Status": d.status,
+      "Pesan / Harapan": d.message || "-",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+    const columnWidths = Object.keys(dataToExport[0]).map((key) => {
+      const maxLength = Math.max(
+        key.length,
+        ...dataToExport.map((row) => String((row as any)[key]).length)
+      );
+      return { wch: maxLength + 2 };
+    });
+    worksheet["!cols"] = columnWidths;
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transaksi Donasi");
+
+    const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
+    const timeStr = now.toTimeString().split(" ")[0].replace(/:/g, "-");
+
+    XLSX.writeFile(workbook, `Laporan_Transaksi_Donasi_${dateStr}_${timeStr}.xlsx`);
+  };
+
   return (
     <div className="min-h-screen flex bg-zinc-100 dark:bg-zinc-950 font-sans transition-colors duration-300">
       
@@ -545,28 +587,38 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status Bayar:</span>
-                  <div className="flex rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-950 p-1">
-                    {[
-                      { id: "all", label: "Semua" },
-                      { id: "success", label: "Sukses" },
-                      { id: "pending", label: "Pending" },
-                      { id: "failed", label: "Gagal" },
-                    ].map(f => (
-                      <button
-                        key={f.id}
-                        onClick={() => setDonationFilter(f.id)}
-                        className={`text-xs font-bold px-3 py-1 rounded-md transition-all duration-200 ${
-                          donationFilter === f.id
-                            ? "bg-brand-emerald-700 text-white shadow-sm"
-                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
-                    ))}
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Status Bayar:</span>
+                    <div className="flex rounded-lg border border-gray-200 dark:border-zinc-800 overflow-hidden bg-zinc-50 dark:bg-zinc-950 p-1">
+                      {[
+                        { id: "all", label: "Semua" },
+                        { id: "success", label: "Sukses" },
+                        { id: "pending", label: "Pending" },
+                        { id: "failed", label: "Gagal" },
+                      ].map(f => (
+                        <button
+                          key={f.id}
+                          onClick={() => setDonationFilter(f.id)}
+                          className={`text-xs font-bold px-3 py-1 rounded-md transition-all duration-200 ${
+                            donationFilter === f.id
+                              ? "bg-brand-emerald-700 text-white shadow-sm"
+                              : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                          }`}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+
+                  <button
+                    onClick={handleExportExcel}
+                    className="flex items-center gap-2 text-xs font-bold px-4 py-2 bg-brand-emerald-600 hover:bg-brand-emerald-700 active:scale-95 text-white rounded-xl shadow-sm transition-all duration-200 cursor-pointer"
+                  >
+                    <FileSpreadsheet className="h-4 w-4" />
+                    Ekspor Excel
+                  </button>
                 </div>
               </div>
 
